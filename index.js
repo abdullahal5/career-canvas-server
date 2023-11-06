@@ -53,6 +53,17 @@ async function run() {
             console.log(err)
         }
     })
+    app.get('/jobs/:id', async(req, res) =>{
+        try{
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id)}
+            const result = await jobsCollection.findOne(query)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
     
 
     // Send a ping to confirm a successful connection
