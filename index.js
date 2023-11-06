@@ -44,6 +44,15 @@ async function run() {
             console.log(err)
         }
     })
+    app.get('/jobs', async(req, res) =>{
+        try{
+            const result = await jobsCollection.find().toArray()
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
     
 
     // Send a ping to confirm a successful connection
