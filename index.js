@@ -136,6 +136,33 @@ async function run() {
             console.log(err)
         }
     })
+    app.put('/myjobs/:id', async(req, res) =>{
+        try{
+            const id = req.params.id
+            const filter = {_id: new ObjectId(id)}
+            const options = {upsert: true}
+            const updatedjob = req.body
+            const updated ={
+                $set: {
+                    name: updatedjob.name,
+      title: updatedjob.title,
+      category: updatedjob.category,
+      salary: updatedjob.salary,
+      description: updatedjob.description,
+      date: updatedjob.date,
+      deadline: updatedjob.deadline,
+      photo: updatedjob.photo,
+      applicants: updatedjob.applicants,
+      email1: updatedjob.email1,}
+            }
+            const result = await myJobCollection.updateOne(filter, updated, options)
+        res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+        
+    })
     
     
 
