@@ -101,6 +101,41 @@ async function run() {
             console.log(err)
         }
     })
+    app.get('/myjobs', async(req, res) =>{
+        try{
+            let query = {}
+            if(req.query?.email1){
+                query = {email: req.query.email1}
+            }
+            const result = await myJobCollection.find(query).toArray()
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+    app.get('/myjobs/:id', async(req, res) =>{
+        try{
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id)}
+            const result = await myJobCollection.findOne(query)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+    app.delete('/myjobs/:id', async(req, res) =>{
+        try{
+            const id = req.params.id;
+            const query = {_id: new ObjectId(id)}
+            const result = await myJobCollection.deleteOne(query)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
     
     
 
