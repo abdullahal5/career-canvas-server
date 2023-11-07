@@ -1,14 +1,19 @@
 const express = require('express')
 const cors = require('cors')
 const app = express()
+const jwt = require('jsonwebtoken')
 require('dotenv').config()
+const cookieParser = require('cookie-parser');
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
-app.use(cors())
+app.use(cookieParser());
+app.use(cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+ }))
 app.use(express.json())
-
 
 app.get('/', (req, res)=>{
     res.send('job server is running')
@@ -30,6 +35,24 @@ async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
     await client.connect();
+
+// verification
+const verify = async(req, res, next) =>{
+    try{
+        const token = req.cookies?.token
+    console.log(token)
+    if(!token){
+        res.send({status: 'unAuthorized Acceess', code: '401'})
+    }
+    next()
+    }
+    catch(err){
+        console.log(err)
+    }
+}
+// console.log(verify)
+
+
 
     const jobsCollection = client.db('jobsDB').collection('jobs')
     const applyColletction = client.db('applyDB').collection('apply')
@@ -76,7 +99,7 @@ async function run() {
             console.log(err)
         }
     })
-    app.get('/apply', async(req, res) =>{
+    app.get('/apply', verify, async(req, res) =>{
         try{
             // console.log(req.query.email)
             let query = {}
@@ -101,7 +124,7 @@ async function run() {
             console.log(err)
         }
     })
-    app.get('/myjobs', async(req, res) =>{
+    app.get('/myjobs', verify, async(req, res) =>{
         try{
             let query = {}
             if(req.query?.email1){
@@ -163,7 +186,24 @@ async function run() {
         }
         
     })
-    
+
+    // jwt function -------
+
+    app.post('/jwt', async(req, res) =>{
+        const user = req.body
+        const token = jwt.sign(user, process.env.SECRET_TOKEN, {expiresIn: '10h'});
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: true,
+            sameSite: 'none'
+        })
+        .send({success: true})
+    })
+    app.post('/logout', async(req, res) =>{
+        const user = req.body;
+        console.log(user)
+        res.clearCookie('token',{maxAge: 0}).send({success: true})
+    })
     
 
     // Send a ping to confirm a successful connection
