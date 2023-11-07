@@ -32,7 +32,7 @@ async function run() {
     await client.connect();
 
     const jobsCollection = client.db('jobsDB').collection('jobs')
-
+    const applyColletction = client.db('applyDB').collection('apply')
     app.post('/jobs', async(req, res) =>{
         try{
             const body = req.body;
@@ -58,6 +58,31 @@ async function run() {
             const id = req.params.id;
             const query = { _id: new ObjectId(id)}
             const result = await jobsCollection.findOne(query)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+    app.post('/apply', async(req, res) =>{
+        try{
+            const apply = req.body;
+            console.log(apply)
+            const result = await applyColletction.insertOne(apply)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+    app.get('/apply', async(req, res) =>{
+        try{
+            console.log(req.query.email)
+            let query = {}
+            if(req.query?.email){
+                query = {email: req.query.email}
+            }
+            const result =await applyColletction.find(query).toArray()
             res.send(result)
         }
         catch(err){
