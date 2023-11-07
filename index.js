@@ -33,6 +33,7 @@ async function run() {
 
     const jobsCollection = client.db('jobsDB').collection('jobs')
     const applyColletction = client.db('applyDB').collection('apply')
+    const myJobCollection = client.db('myJobDb').collection('myJob')
     app.post('/jobs', async(req, res) =>{
         try{
             const body = req.body;
@@ -67,7 +68,7 @@ async function run() {
     app.post('/apply', async(req, res) =>{
         try{
             const apply = req.body;
-            console.log(apply)
+            // console.log(apply)
             const result = await applyColletction.insertOne(apply)
             res.send(result)
         }
@@ -77,7 +78,7 @@ async function run() {
     })
     app.get('/apply', async(req, res) =>{
         try{
-            console.log(req.query.email)
+            // console.log(req.query.email)
             let query = {}
             if(req.query?.email){
                 query = {email: req.query.email}
@@ -89,6 +90,18 @@ async function run() {
             console.log(err)
         }
     })
+    app.post('/myjobs', async(req, res) =>{
+        try{
+            const myjobs = req.body;
+            console.log(myjobs)
+            const result = await myJobCollection.insertOne(myjobs)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
+    
     
 
     // Send a ping to confirm a successful connection
