@@ -42,7 +42,7 @@ const verify = async(req, res, next) =>{
         const token = req.cookies?.token
     console.log(token)
     if(!token){
-        res.send({status: 'unAuthorized Acceess', code: '401'})
+       return res.send({status: 'unAuthorized Acceess', code: '401'})
     }
     next()
     }
@@ -113,6 +113,17 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
+    app.get('/apply/:id', verify,async(req, res) =>{
+        try{
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id)}
+            const result = await applyColletction.findOne(query)
+            res.send(result)
+        }
+        catch(err){
+            console.log(err)
+        }
+    })
     app.post('/myjobs', async(req, res) =>{
         try{
             const myjobs = req.body;
@@ -124,7 +135,7 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/myjobs', verify, async(req, res) =>{
+    app.get('/myjobs',verify, async(req, res) =>{
         try{
             let query = {}
             if(req.query?.email1){
@@ -137,7 +148,7 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/myjobs/:id', async(req, res) =>{
+    app.get('/myjobs/:id', verify,  async(req, res) =>{
         try{
             const id = req.params.id;
             const query = { _id: new ObjectId(id)}
