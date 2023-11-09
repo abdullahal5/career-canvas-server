@@ -3,16 +3,16 @@ const cors = require('cors')
 const app = express()
 const jwt = require('jsonwebtoken')
 require('dotenv').config()
-const cookieParser = require('cookie-parser');
+const cookieParser = require('cookie-parser')
 const port = process.env.PORT || 5000;
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 
-app.use(cookieParser());
+app.use(cookieParser())
 app.use(cors({
-    origin: ["http://localhost:5173"],
-    credentials: true,
- }))
+    origin: ['http://localhost:5174'],
+    credentials: true
+}))
 app.use(express.json())
 
 app.get('/', (req, res)=>{
@@ -34,29 +34,29 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
+    // await client.connect();
 
 // verification
-const verify = async(req, res, next) =>{
-    try{
-        const token = req.cookies?.token
-    console.log(token)
-    if(!token){
-       return res.send({status: 'unAuthorized Acceess', code: '401'})
-    }
-    next()
-    }
-    catch(err){
-        console.log(err)
-    }
-}
-// console.log(verify)
 
 
 
     const jobsCollection = client.db('jobsDB').collection('jobs')
     const applyColletction = client.db('applyDB').collection('apply')
     const myJobCollection = client.db('myJobDb').collection('myJob')
+    const verifyToken = (req, res, next) =>{
+        const token = req?.cookies?.token
+        if(!token){
+            return res.status(401).send( { message: 'unAuthorized access'})
+        }
+        jwt.verify(token, process.env.SECRET_TOKEN, (err, decoded) =>{
+            if(err){
+                return res.status(401).send({message: 'unAuthorized access'})
+            }
+            req.user = decoded
+            next()
+        })
+    
+    }
     app.post('/jobs', async(req, res) =>{
         try{
             const body = req.body;
@@ -99,10 +99,11 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/apply', verify, async(req, res) =>{
+    app.get('/apply',verifyToken , async(req, res) =>{
         try{
             // console.log(req.query.email)
             let query = {}
+            
             if(req.query?.email){
                 query = {email: req.query.email}
             }
@@ -113,7 +114,7 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/apply/:id', verify,async(req, res) =>{
+    app.get('/apply/:id', async(req, res) =>{
         try{
             const id = req.params.id;
             const query = { _id: new ObjectId(id)}
@@ -135,9 +136,10 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/myjobs',verify, async(req, res) =>{
+    app.get('/myjobs',verifyToken,async(req, res) =>{
         try{
             let query = {}
+            
             if(req.query?.email1){
                 query = {email: req.query.email1}
             }
@@ -148,7 +150,7 @@ const verify = async(req, res, next) =>{
             console.log(err)
         }
     })
-    app.get('/myjobs/:id', verify,  async(req, res) =>{
+    app.get('/myjobs/:id',  async(req, res) =>{
         try{
             const id = req.params.id;
             const query = { _id: new ObjectId(id)}
@@ -198,22 +200,18 @@ const verify = async(req, res, next) =>{
         
     })
 
-    // jwt function -------
-
     app.post('/jwt', async(req, res) =>{
-        const user = req.body
-        const token = jwt.sign(user, process.env.SECRET_TOKEN, {expiresIn: '10h'});
-        res.cookie('token', token, {
-            httpOnly: true,
-            secure: true,
-            sameSite: 'none'
-        })
-        .send({success: true})
+        const body = req.body;
+        const token = jwt.sign(body, process.env.SECRET_TOKEN, {expiresIn: '10h'})
+        res.cookie('token',token, {
+           httpOnly: true,
+           secure: true,
+           sameSite: 'none'
+        }).send({success: true})
     })
     app.post('/logout', async(req, res) =>{
-        const user = req.body;
-        console.log(user)
-        res.clearCookie('token',{maxAge: 0}).send({success: true})
+        const user = req.body
+        res.clearCookie('token', {maxAge: 0}).send({success: true})
     })
     
 
